@@ -3,7 +3,7 @@ A Practical Introduction to Data Visualization with ggplot2
 
 ### rstudio::conf 2020
 
-by INSTRUCTOR_NAME
+by Kieran Healy
 
 -----
 
