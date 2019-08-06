@@ -35,7 +35,13 @@ ADD LEARNING OBJECTIVE(S)
 
 ## Is this course for me?
 
-THREE_QUESTIONS
+You should take this workshop if:
+
+1. You want to understand the basic principles behind effective data visualizations, and how they are implemented in R and ggplot.
+2. You want to better develop your practical sense for why some graphs and figures work well while others do not.
+3. You want to feel more confident and fluent in ggplot, in order to make, refine, and effectively present good data visualizations.
+
+
 
 ## Prework
 
