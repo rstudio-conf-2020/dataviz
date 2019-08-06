@@ -1,4 +1,4 @@
-WORKSHOP_TITLE
+A Practical Introduction to Data Visualization with ggplot2
 ================
 
 ### rstudio::conf 2020
