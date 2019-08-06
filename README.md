@@ -31,7 +31,7 @@ The effective use of graphs and charts is an important way to explore data for y
 
 ## Learning objectives
 
-LEARNING_OBJECTIVES
+ADD LEARNING OBJECTIVE(S)
 
 ## Is this course for me?
 
