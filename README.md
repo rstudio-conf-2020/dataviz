@@ -9,7 +9,7 @@ by Kieran Healy
 
 :spiral_calendar: January 27 and 28, 2020  
 :alarm_clock:     09:00 - 17:00  
-:hotel:           Golden Gate Rooms 6-7 (Lobby Level)
+:hotel:           Golden Gate Rooms 6-7 (Lobby Level)  
 :writing_hand:    [rstd.io/conf](http://rstd.io/conf)
 
 -----
