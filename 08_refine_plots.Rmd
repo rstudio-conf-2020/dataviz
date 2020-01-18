@@ -1,0 +1,450 @@
+---
+title: "Refining Your Plots"
+author: "Kieran Healy"
+date: "10-January-2020"
+output: html_document
+---
+
+## Load Libraries
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(here)
+library(tidyverse)
+library(ggrepel)
+library(socviz)
+```
+
+
+```{r 08-refine-plots-1}
+head(asasec)
+```
+
+
+```{r 08-refine-plots-2, fig.height=12, fig.width=14, out.width="100%"}
+
+pdf(file = "~/Desktop/asa_sections.pdf", height = 8, width = 12)
+p0 <- ggplot(data = asasec,
+             mapping = aes(x = Year, y = Members, label = Sname, group = Sname)) 
+p1 <- p0 + geom_line() 
+
+p1 + facet_wrap( ~ reorder(Sname, -Members), ncol = 11) +
+    scale_x_continuous(breaks = c(2006, 2010, 2014)) +
+    theme(strip.background = element_rect(fill = "white"),
+          strip.text = element_text(size = rel(0.65))) +
+    labs(x = "")
+
+dev.off()
+
+```
+
+```{r 08-refine-plots-3, out.width="100%"}
+
+p <- ggplot(data = subset(asasec, Year == 2014),
+            mapping = aes(x = Members, y = Revenues, label = Sname))
+
+p + geom_point() + geom_smooth()
+
+```
+
+```{r 08-refine-plots-4, fig.height=5, fig.width=6}
+
+p <- ggplot(data = subset(asasec, Year == 2014),
+            mapping = aes(x = Members, y = Revenues, label = Sname))
+
+p + geom_point(mapping = aes(color = Journal)) +
+    geom_smooth(method = "lm")
+
+```
+
+```{r 08-refine-plots-5, fig.width=6, fig.height=5}
+
+p0 <- ggplot(data = subset(asasec, Year == 2014),
+             mapping = aes(x = Members, y = Revenues, label = Sname))
+
+p1 <- p0 + geom_smooth(method = "lm", se = FALSE, color = "gray80") +
+    geom_point(mapping = aes(color = Journal)) 
+
+p2 <- p1 + geom_text_repel(data=subset(asasec,
+                                       Year == 2014 & Revenues > 7000),
+                           size = 2)
+
+```
+
+```{r 08-refine-plots-6, fig.width=6, fig.height=5}
+
+p3 <- p2 + labs(x="Membership",
+        y="Revenues",
+        color = "Section has own Journal",
+        title = "ASA Sections",
+        subtitle = "2014 Calendar year.",
+        caption = "Source: ASA annual report.")
+p4 <- p3 + scale_y_continuous(labels = scales::dollar) +
+     theme(legend.position = "bottom")
+p4
+
+```
+
+
+## Use color to your advantage
+
+```{r 08-refine-plots-7, fig.cap="RColorBrewer's qualitative palettes.", fig.width=4, fig.height=4}
+library(RColorBrewer)
+display.brewer.all(type = "qual")
+```
+
+
+```{r 08-refine-plots-8, fig.cap='Some available palettes in use.', fig.width=5, fig.height=4, fig.show = "hold"}
+
+p <- ggplot(data = organdata,
+            mapping = aes(x = roads, y = donors, color = world))
+p + geom_point(size = 2) + scale_color_brewer(palette = "Set2") +
+    theme(legend.position = "top")
+
+p + geom_point(size = 2) + scale_color_brewer(palette = "Pastel2") +
+        theme(legend.position = "top")
+
+p + geom_point(size = 2) + scale_color_brewer(palette = "Dark2") +
+    theme(legend.position = "top")
+```
+
+```{r 08-refine-plots-9, fig.cap='Using a custom color palette.', fig.width=8, fig.height=6}
+
+cb_palette <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
+                "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+p4 + scale_color_manual(values = cb_palette) 
+
+```
+
+```{r 08-refine-plots-10}
+Default <- brewer.pal(5, "Set2")
+```
+
+
+```{r 08-refine-plots-11}
+library(dichromat)
+
+types <- c("deutan", "protan", "tritan")
+names(types) <- c("Deuteronopia", "Protanopia", "Tritanopia")
+
+color_table <- types %>%
+    purrr::map(~ dichromat(Default, .x)) %>%
+    as_tibble() %>%
+    add_column(Default, .before = TRUE)
+
+color_table
+```
+
+```{r 08-refine-plots-12, fig.width=5, fig.height=6, fig.show = "hold", fig.cap = "Comparing a default color palette with an approximation of how the same palette appears to people with one of three kinds of color blindness."}
+color_comp(color_table)
+```
+
+
+## Layer color and text together
+
+
+```{r ch-08-elec-01, fig.cap = "The background layer.", fig.height=4, fig.width=6}
+
+# Democrat Blue and Republican Red
+party_colors <- c("#2E74C0", "#CB454A")
+
+p0 <- ggplot(data = subset(county_data,
+                           flipped == "No"),
+             mapping = aes(x = pop,
+                           y = black/100))
+
+p1 <- p0 + geom_point(alpha = 0.15, color = "gray50") +
+    scale_x_log10(labels=scales::comma) 
+
+p1
+```
+
+
+```{r ch-08-elec-02, fig.cap = "The second layer.", fig.height=4, fig.width=6}
+
+p2 <- p1 + geom_point(data = subset(county_data,
+                                    flipped == "Yes"),
+                      mapping = aes(x = pop, y = black/100,
+                                    color = partywinner16)) +
+    scale_color_manual(values = party_colors)
+
+p2
+```
+
+
+```{r ch-08-elec-03, fig.cap = "Adding guides and labels, and fixing the x-axis scale.", fig.height=4, fig.width=6}
+
+p3 <- p2 + scale_y_continuous(labels=scales::percent) +
+    labs(color = "County flipped to ... ",
+         x = "County Population (log scale)",
+         y = "Percent Black Population",
+         title = "Flipped counties, 2016",
+         caption = "Counties in gray did not flip.")
+
+p3
+
+```
+
+
+```{r ch-08-elec-04, fig.cap='County-level election data from 2016.', , layout = 'l-screen-inset', fig.width=10, fig.height=7}
+
+p4 <- p3 + geom_text_repel(data =
+                               subset(county_data,
+                                      flipped == "Yes" &
+                                      black  > 25),
+                           mapping =
+                               aes(x = pop,
+                                   y = black/100,
+                                   label = state), size = 2)
+
+p4 + theme_minimal() + theme(legend.position="top")
+
+```
+
+
+```{r ch-08-themes-01, fig.cap='Economist and WSJ themes.', out.width="50%", fig.width=5.8, fig.height=4.8, fig.show = "hold"}
+library(ggthemes)
+
+theme_set(theme_economist())
+p4 + theme(legend.position="top")
+
+theme_set(theme_wsj())
+
+p4 + theme(plot.title = element_text(size = rel(0.6)),
+           legend.title = element_text(size = rel(0.35)),
+           plot.caption = element_text(size = rel(0.35)),
+           legend.position = "top")
+
+theme_set(theme_minimal())
+
+```
+
+```{r ch-08-theme-control, fig.cap='Controlling various theme elements directly.', fig.width=5, fig.height=5, out.width = "50%", warning=FALSE, fig.show = "hold"}
+
+p4 + theme(legend.position = "top")
+
+p4 + theme(legend.position = "top",
+           plot.title = element_text(size=rel(2),
+                                     lineheight=.5,
+                                     family="Times",
+                                     face="bold.italic",
+                                     colour="orange"),
+           axis.text.x = element_text(size=rel(1.1),
+                                      family="Courier",
+                                      face="bold",
+                                      color="purple"))
+
+
+```
+
+## Use theme elements in a substantive way
+
+
+```{r gss-custom-01, fig.cap = "A customized small multiple.", fig.height = 10, fig.width = 4,}
+
+yrs <- c(seq(1972, 1988, 4), 1993, seq(1996, 2016, 4))
+
+mean_age <- gss_lon %>%
+    filter(age %nin% NA && year %in% yrs) %>%
+    group_by(year) %>%
+    summarize(xbar = round(mean(age, na.rm = TRUE), 0))
+mean_age$y <- 0.3
+
+yr_labs <- data.frame(x = 85, y = 0.8,
+                      year = yrs)
+
+
+p <- ggplot(data = subset(gss_lon, year %in% yrs),
+            mapping = aes(x = age))
+
+p1 <- p + geom_density(fill = "gray20", color = FALSE,
+                       alpha = 0.9, mapping = aes(y = ..scaled..)) +
+    geom_vline(data = subset(mean_age, year %in% yrs),
+               aes(xintercept = xbar), color = "white", size = 0.5) +
+    geom_text(data = subset(mean_age, year %in% yrs),
+              aes(x = xbar, y = y, label = xbar), nudge_x = 7.5,
+              color = "white", size = 3.5, hjust = 1) +
+    geom_text(data = subset(yr_labs, year %in% yrs),
+              aes(x = x, y = y, label = year)) +
+    facet_grid(year ~ ., switch = "y")
+
+p1 + theme_minimal() +
+    theme(plot.title = element_text(size = 16),
+          axis.text.x= element_text(size = 12),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          strip.background = element_blank(),
+          strip.text.y = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    labs(x = "Age",
+         y = NULL,
+         title = "Age Distribution of\nGSS Respondents")
+
+
+```
+
+
+```{r ridgeplot, fig.cap = "A ridgeplot version of the age distribution plot.", fig.height = 12, fig.width = 3.1}
+
+library(ggridges)
+
+p <- ggplot(data = gss_lon,
+            mapping = aes(x = age, y = factor(year, levels = rev(unique(year)),
+                                     ordered = TRUE)))
+
+p + geom_density_ridges(alpha = 0.6, fill = "lightblue", scale = 1.5) +
+    scale_x_continuous(breaks = c(25, 50, 75)) +
+    scale_y_discrete(expand = c(0.01, 0)) + 
+    labs(x = "Age", y = NULL,
+         title = "Age Distribution of\nGSS Respondents") +
+    theme_ridges() +
+    theme(title = element_text(size = 16, face = "bold"))
+```
+
+
+## Case studies
+
+
+
+### Two y-axes
+
+```{r 08-refine-plots-13}
+head(fredts)
+
+fredts_m <- fredts %>% select(date, sp500_i, monbase_i) %>%
+    gather(key = series, value = score, sp500_i:monbase_i)
+
+head(fredts_m)
+```
+
+
+```{r 08-refine-plots-14}
+
+p <- ggplot(data = fredts_m,
+            mapping = aes(x = date, y = score,
+                          group = series,
+                          color = series))
+p1 <- p + geom_line() + theme(legend.position = "top") +
+    labs(x = "Date",
+         y = "Index",
+         color = "Series")
+
+p <- ggplot(data = fredts,
+            mapping = aes(x = date, y = sp500_i - monbase_i))
+
+p2 <- p + geom_line() +
+    labs(x = "Date",
+         y = "Difference")
+```
+
+
+```{r fred5, fig.cap="Indexed series with a running difference below, using two separate plots.", fig.width = 8}
+
+cowplot::plot_grid(p1, p2, nrow = 2, rel_heights = c(0.75, 0.25), align = "v")
+
+```
+
+
+### Redrawing a bad slide
+
+```{r 08-refine-plots-15}
+head(yahoo)
+```
+
+
+```{r yahoo-02, fig.cap="Redrawing as a connected scatterplot.", fig.width = 5, fig.height = 5}
+p <- ggplot(data = yahoo,
+            mapping = aes(x = Employees, y = Revenue))
+p + geom_path(color = "gray80") +
+    geom_text(aes(color = Mayer, label = Year),
+              size = 3, fontface = "bold") +
+    theme(legend.position = "bottom") +
+    labs(color = "Mayer is CEO",
+         x = "Employees", y = "Revenue (Millions)",
+         title = "Yahoo Employees vs Revenues, 2004-2014") +
+    scale_y_continuous(labels = scales::dollar) +
+    scale_x_continuous(labels = scales::comma)
+
+```
+
+
+```{r yahoo-03, fig.cap="Plotting the ratio of revenue to employees against time.", fig.width = 6, fig.height = 4}
+
+p <- ggplot(data = yahoo,
+            mapping = aes(x = Year, y = Revenue/Employees))
+
+p + geom_vline(xintercept = 2012) +
+    geom_line(color = "gray60", size = 2) +
+    annotate("text", x = 2013, y = 0.44,
+             label = " Mayer becomes CEO", size = 2.5) +
+    labs(x = "Year\n",
+         y = "Revenue/Employees",
+         title = "Yahoo Revenue to Employee Ratio, 2004-2014")
+
+```
+
+### Saying no to pie
+
+```{r 08-refine-plots-16}
+head(studebt)
+```
+
+
+```{r studentpie-02, fig.cap="Faceting the pie charts.", fig.width = 6, fig.height = 4}
+
+p_xlab <- "Amount Owed, in thousands of Dollars"
+p_title <- "Outstanding Student Loans"
+p_subtitle <- "44 million borrowers owe a total of $1.3 trillion"
+p_caption <- "Source: FRB NY"
+
+f_labs <- c(`Borrowers` = "Percent of\nall Borrowers",
+            `Balances` = "Percent of\nall Balances")
+
+p <- ggplot(data = studebt,
+            mapping = aes(x = Debt, y = pct/100, fill = type))
+p + geom_bar(stat = "identity") +
+    scale_fill_brewer(type = "qual", palette = "Dark2") +
+    scale_y_continuous(labels = scales::percent) +
+    guides(fill = FALSE) +
+    theme(strip.text.x = element_text(face = "bold")) +
+    labs(y = NULL, x = p_xlab,
+      caption = p_caption,
+      title = p_title,
+      subtitle = p_subtitle) +
+    facet_grid(~ type, labeller = as_labeller(f_labs)) +
+    coord_flip()
+```
+
+
+```{r studentpie-03, fig.cap="Debt distributions as horizontally segmented bars.", fig.width = 8, fig.height = 3}
+library(viridis)
+
+p <- ggplot(studebt, aes(y = pct/100, x = type, fill = Debtrc))
+p + geom_bar(stat = "identity", color = "gray80") +
+  scale_x_discrete(labels = as_labeller(f_labs)) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_viridis(discrete = TRUE) +
+  guides(fill = guide_legend(reverse = TRUE,
+                             title.position = "top",
+                             label.position = "bottom",
+                             keywidth = 3,
+                             nrow = 1)) +
+  labs(x = NULL, y = NULL,
+       fill = "Amount Owed, in thousands of dollars",
+       caption = p_caption,
+       title = p_title,
+       subtitle = p_subtitle) +
+  theme(legend.position = "top",
+        axis.text.y = element_text(face = "bold", hjust = 1, size = 12),
+        axis.ticks.length = unit(0, "cm"),
+        panel.grid.major.y = element_blank()) +
+  coord_flip()
+
+```
+

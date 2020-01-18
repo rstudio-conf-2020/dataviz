@@ -1,0 +1,243 @@
+---
+title: "Show the Right Numbers"
+author: "Kieran Healy"
+date: "10-January-2020"
+output: html_document
+---
+
+## Load Libraries
+
+To begin we must load some libraries we will be using. If we do not load them, R will not be able to find the functions contained in these libraries. The tidyverse includes ggplot and other tools. We also load the socviz and gapminder libraries.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(here)
+library(tidyverse)
+library(socviz)
+```
+
+
+```{r 04-show-the-right-numbers-1}
+
+```
+
+
+### Grouped data and the group aesthetic
+
+```{r group_1}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+p + geom_line()       
+```
+
+```{r group_2}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+p + geom_line(mapping = 
+                    aes(group = country))       
+```
+
+
+### Faceting 
+
+```{r facet_1}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = year,
+                          y = gdpPercap))
+
+p + geom_line(mapping =  
+              aes(group = country)) + 
+facet_wrap(~ continent)      
+```
+
+```{r facet_polished, fig.height = 5, fig.width = 12, layout = 'l-page'}
+p + geom_line(color="gray70",
+              mapping=aes(group = country)) +
+    geom_smooth(size = 1.1,
+                method = "loess",
+                se = FALSE) +
+    scale_y_log10(labels=scales::dollar) +
+    facet_wrap(~ continent, ncol = 5) +
+    labs(x = "Year",
+         y = "log GDP per capita",
+         title = "GDP per capita on Five Continents")      
+```
+
+
+```{r facet_grid}
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = age, y = childs))
+p + geom_point(alpha = 0.2) + geom_smooth() +
+    facet_grid(sex ~ race)
+
+```
+
+### Geoms can transform data
+
+```{r histogram}
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion))
+p + geom_bar()
+
+```
+
+```{r histogram_2}
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion))
+p + geom_bar(mapping = aes(y = ..prop..))
+
+```
+
+```{r histogram_3}
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion))
+p + geom_bar(mapping = aes(y = ..prop.., group = 1)) 
+
+
+```
+
+### Frequency Plots the Slightly Awkward Way
+
+```{r gss_tab}
+
+table(gss_sm$religion)
+
+```
+
+```{r gss_color_fill}
+
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = religion, color = religion))
+p + geom_bar()
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = religion, fill = religion))
+p + geom_bar() + guides(fill = FALSE)
+
+```
+
+```{r two_way_1}
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar()
+
+```
+
+```{r two_way_2}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar(position = "fill")      
+```
+
+```{r two_way_3}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar(position = "dodge",
+             mapping = aes(y = ..prop..))      
+```
+
+
+```{r two_way_4}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar(position = "dodge",
+             mapping = aes(y = ..prop.., 
+                           group = religion))       
+```
+
+### Histograms and Density Plots 
+
+```{r hist_1}
+
+p <- ggplot(data = midwest,
+            mapping = aes(x = area))
+p + geom_histogram()
+
+p <- ggplot(data = midwest,
+            mapping = aes(x = area))
+p + geom_histogram(bins = 10)
+
+```
+
+
+```{r hist_2}
+
+oh_wi <- c("OH", "WI")
+
+p <- ggplot(data = subset(midwest, subset = state %in% oh_wi),
+            mapping = aes(x = percollege, fill = state))
+p + geom_histogram(alpha = 0.4, bins = 20)
+
+```
+
+
+```{r density_1}
+
+p <- ggplot(data = midwest,
+            mapping = aes(x = area))
+p + geom_density()
+
+
+```
+
+```{r density_2}
+
+
+p <- ggplot(data = midwest,
+            mapping = aes(x = area, fill = state, color = state))
+p + geom_density(alpha = 0.3)
+
+```
+
+### Avoid transformations when necessary
+
+
+```{r titanic_1}
+
+titanic
+
+```
+
+```{r titanic_2}
+
+p <- ggplot(data = titanic,
+            mapping = aes(x = fate, y = percent, fill = sex))
+p + geom_bar(position = "dodge", stat = "identity") + theme(legend.position = "top")
+
+```
+
+
+```{r lifegap_1}
+
+oecd_sum
+
+```
+
+```{r lifegap_2, fig.height = 4, fig.width = 9, layout = 'l-page'}
+
+p <- ggplot(data = oecd_sum,
+            mapping = aes(x = year, y = diff, fill = hi_lo))
+p + geom_col() + guides(fill = FALSE) +
+  labs(x = NULL, y = "Difference in Years",
+       title = "The US Life Expectancy Gap",
+       subtitle = "Difference between US and OECD
+                   average life expectancies, 1960-2015",
+       caption = "Data: OECD. After a chart by Christopher Ingraham,
+                  Washington Post, December 27th 2017.")
+
+```
+

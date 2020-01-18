@@ -7,15 +7,6 @@ by Kieran Healy
 
 -----
 
-INSTRUCTIONS FOR INSTRUCTORS: Please insert information about your
-workshop below. Then, add workshop content in the materials folder and
-link to each session’s materials from the schedule below. You are
-welcomed to add more rows to the schedule. We just ask that you take
-breaks at the specified times. Once you are done adding information, you
-can remove these instructions from the README.
-
------
-
 :spiral_calendar: January 27 and 28, 2020  
 :alarm_clock:     09:00 - 17:00  
 :hotel:           \[ADD ROOM\]  
@@ -45,10 +36,31 @@ You should take this workshop if:
 
 ## Prework
 
-\[ADD INFORMATION YOU WANT LEARNERS TO HAVE / STEPS THEY WANT THEM TO
-COMPLETE PRIOR TO THE WORKSHOP. THIS COULD BE A LINK TO A THREAD ON
-RSTUDIO COMMUNITY, PACKAGE INSTALL INSTRUCTIONS, HOW TO GET AN
-RSTUDIO.CLOUD ACCOUNT, ETC.\]
+We will be working with the most recent stable versions of R and RStudio, as well as with a number of additional packages. You can either install R, RStudio, and the necessary packages locally, on your own laptop, or use an RStudio Cloud workspace in your browser.
+
+### Running R and RStudio on your Laptop
+
+- If you are running the software locally on your laptop, begin by installing R (<http://cloud.r-project.org>) and RStudio (<http://rstudio.com>). 
+- Once the applications are installed, launch RStudio. Either type or copy and paste the following lines of code at R’s command prompt, located in the RStudio window named “Console”, and then hit return. In the code below, the <- arrow is made up of two keystrokes, first < and then the short dash or minus symbol, -.
+
+``` r
+my_packages <- c("tidyverse", "broom", "coefplot", "cowplot", "drat",
+                 "gapminder", "GGally", "ggforce", "ggraph", "ggrepel", "ggridges",  
+                 "graphlayouts", "gridExtra", "here", "interplot", "margins", 
+                 "maps", "mapproj", "mapdata", "MASS", "naniar", "prismatic", 
+                 "quantreg", "rlang", "scales", "socviz", "survey", "srvyr", 
+                 "viridis", "viridisLite", "devtools")
+
+install.packages(my_packages, repos = "http://cran.rstudio.com")
+
+```
+
+If you do not have one already, it will be useful to create a GitHub account and obtain a GitHub Personal Access Token. Read and carefully follow the instructions in Parts I and II of [Happy Git With R](https://happygitwithr.com), and then also the instructions in [Appendix B](https://happygitwithr.com/github-pat.html) of the same document.
+
+### Running R from RStudio.cloud, via your Web Browser
+
+[Instructions to follow]
+
 
 ## Schedule
 
@@ -64,7 +76,7 @@ RSTUDIO.CLOUD ACCOUNT, ETC.\]
 
 ## Instructor
 
-\[ADD INSTRUCTOR BIO\]
+[Kieran Healy](https://kieranhealy.org) is Professor of Sociology at Duke University. He is the author of [Data Visualization: A Practical Introduction](http://socviz.co) (Princeton University Press, 2019). Much of his research has been about the social organization of exchange in human blood and organs, cultural goods, software, and ideas. His current work focuses on the moral order of market society, the effect of models and measurement on social classification, and the link between those two topics, especially in the consumer credit market. You can learn more at [https://kieranhealy.org](https://kieranhealy.org)
 
 -----
 

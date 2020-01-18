@@ -1,0 +1,674 @@
+---
+title: "Work with Models"
+author: "Kieran Healy"
+date: "10-January-2020"
+output: html_document
+---
+
+## Load Libraries
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(here)
+library(tidyverse)
+library(socviz)
+```
+
+
+```{r model1}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = log(gdpPercap), y = lifeExp))
+
+p + geom_point(alpha=0.1) +
+    geom_smooth(color = "tomato", fill="tomato", method = MASS::rlm) +
+    geom_smooth(color = "steelblue", fill="steelblue", method = "lm")
+
+p + geom_point(alpha=0.1) +
+    geom_smooth(color = "tomato", method = "lm", size = 1.2, 
+                formula = y ~ splines::bs(x, 3), se = FALSE)
+
+p + geom_point(alpha=0.1) +
+    geom_quantile(color = "tomato", size = 1.2, method = "rqss",
+                  lambda = 1, quantiles = c(0.20, 0.5, 0.85))
+```
+
+```{r model2}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = log(gdpPercap), y = lifeExp))
+
+p + geom_point(alpha=0.1) +
+    geom_smooth(color = "tomato", fill="tomato", method = MASS::rlm) +
+    geom_smooth(color = "steelblue", fill="steelblue", method = "lm")
+
+p + geom_point(alpha=0.1) +
+    geom_smooth(color = "tomato", method = "lm", size = 1.2, 
+                formula = y ~ splines::bs(x, 3), se = FALSE)
+
+p + geom_point(alpha=0.1) +
+    geom_quantile(color = "tomato", size = 1.2, method = "rqss",
+                  lambda = 1, quantiles = c(0.20, 0.5, 0.85))
+```
+
+
+## Show several fits at once, with a legend
+
+
+
+```{r severalfits}
+
+model_colors <- RColorBrewer::brewer.pal(3, "Set1")
+model_colors
+
+
+p0 <- ggplot(data = gapminder,
+            mapping = aes(x = log(gdpPercap), y = lifeExp))
+
+p1 <- p0 + geom_point(alpha = 0.2) +
+    geom_smooth(method = "lm", aes(color = "OLS", fill = "OLS")) +
+    geom_smooth(method = "lm", formula = y ~ splines::bs(x, df = 3),
+                aes(color = "Cubic Spline", fill = "Cubic Spline")) +
+    geom_smooth(method = "loess",
+                aes(color = "LOESS", fill = "LOESS"))
+
+
+p1 + scale_color_manual(name = "Models", values = model_colors) +
+    scale_fill_manual(name = "Models", values = model_colors) +
+    theme(legend.position = "top")
+```
+
+
+## Look inside model objects
+
+```{r 06-models-1, echo=FALSE}
+str(gapminder, strict.width = "wrap", nchar.max = 32, vec.len=1)
+```
+
+
+```{r 06-models-2}
+out <- lm(formula = lifeExp ~ gdpPercap + pop + continent,
+          data = gapminder)
+```
+
+```{r 06-models-3}
+summary(out)
+```
+
+
+## Generate predictions to graph
+
+```{r 06-models-4}
+
+min_gdp <- min(gapminder$gdpPercap)
+max_gdp <- max(gapminder$gdpPercap)
+med_pop <- median(gapminder$pop)
+
+pred_df <- expand.grid(gdpPercap = (seq(from = min_gdp,
+                                        to = max_gdp,
+                                        length.out = 100)),
+                       pop = med_pop,
+                       continent = c("Africa", "Americas",
+                                     "Asia", "Europe", "Oceania"))
+
+dim(pred_df)
+head(pred_df)
+```
+
+
+```{r 06-models-5}
+
+pred_out <- predict(object = out,
+                    newdata = pred_df,
+                    interval = "predict")
+head(pred_out)
+
+```
+
+```{r 06-models-6}
+
+pred_df <- cbind(pred_df, pred_out)
+head(pred_df)
+
+```
+
+
+```{r 06-models-7}
+
+p <- ggplot(data = subset(pred_df, continent %in% c("Europe", "Africa")),
+            aes(x = gdpPercap,
+                y = fit, ymin = lwr, ymax = upr,
+                color = continent,
+                fill = continent,
+                group = continent))
+
+p + geom_point(data = subset(gapminder,
+                             continent %in% c("Europe", "Africa")),
+               aes(x = gdpPercap, y = lifeExp,
+                   color = continent),
+               alpha = 0.5,
+               inherit.aes = FALSE) + 
+    geom_line() +
+    geom_ribbon(alpha = 0.2, color = FALSE) +
+    scale_x_log10(labels = scales::dollar)
+
+```
+
+
+## Tidy model objects with broom
+
+```{r 06-models-8}
+library(broom)
+```
+
+```{r 06-models-9}
+out_comp <- tidy(out)
+out_comp %>% round_df()
+
+```
+
+
+```{r 06-models-10}
+p <- ggplot(out_comp, mapping = aes(x = term,
+                                    y = estimate))
+
+p + geom_point() + coord_flip() 
+```
+
+
+```{r 06-models-11}
+out_conf <- tidy(out, conf.int = TRUE)
+out_conf %>% round_df()
+```
+
+```{r 06-models-12}
+## out_conf <- subset(out_conf, term %nin% "(Intercept)")
+## out_conf$nicelabs <- prefix_strip(out_conf$term, "continent")
+
+out_conf <- out_conf %>%
+    filter(term %nin% "(Intercept)") %>%
+    mutate(nicelabs = prefix_strip(term, "continent")) %>%
+    select(nicelabs, everything())
+
+
+```
+
+
+```{r 06-models-13}
+
+p <- ggplot(out_conf, mapping = aes(x = reorder(nicelabs, estimate),
+                                    y = estimate, ymin = conf.low, ymax = conf.high))
+p + geom_pointrange() + coord_flip() + labs(x="", y="OLS Estimate")
+
+```
+
+
+### Get observation-level statistics with augment()
+
+```{r 06-models-14}
+out_aug <- augment(out)
+head(out_aug) %>% round_df()
+```
+
+
+```{r 06-models-15}
+out_aug <- augment(out, data = gapminder)
+head(out_aug) %>% round_df()
+```
+
+```{r 06-models-16}
+
+p <- ggplot(data = out_aug,
+            mapping = aes(x = .fitted, y = .resid))
+p + geom_point()
+
+```
+
+
+### Get model-level statistics with glance()
+
+```{r 06-models-17}
+glance(out) %>% round_df()
+```
+
+
+```{r 06-models-18}
+library(survival)
+
+out_cph <- coxph(Surv(time, status) ~ age + sex, data = lung)
+out_surv <- survfit(out_cph)
+
+```
+
+
+```{r 06-models-19}
+out_tidy <- tidy(out_surv)
+
+p <- ggplot(data = out_tidy, mapping = aes(time, estimate))
+p + geom_line() +
+    geom_ribbon(mapping = aes(ymin = conf.low, ymax = conf.high), alpha = .2)
+```
+
+## Grouped analysis and list columns
+
+```{r 06-models-20}
+eu77 <- gapminder %>% filter(continent == "Europe", year == 1977)
+```
+
+```{r 06-models-21}
+fit <- lm(lifeExp ~ log(gdpPercap), data = eu77)
+summary(fit)
+```
+
+```{r 06-models-22}
+
+out_le <- gapminder %>%
+    group_by(continent, year) %>%
+    nest()
+
+out_le
+
+```
+
+
+```{r 06-models-23}
+out_le %>% filter(continent == "Europe" & year == 1977) %>% 
+    unnest(cols = c(data))
+```
+
+
+```{r 06-models-24, echo = FALSE}
+old_digits <- getOption("digits")
+options(digits = 3)
+```
+
+
+```{r 06-models-25}
+
+fit_ols <- function(df) {
+    lm(lifeExp ~ log(gdpPercap), data = df)
+}
+
+out_le <- gapminder %>%
+    group_by(continent, year) %>%
+    nest() %>% 
+    mutate(model = map(data, fit_ols)) 
+
+out_le
+
+```
+
+
+```{r 06-models-26}
+
+fit_ols <- function(df) {
+    lm(lifeExp ~ log(gdpPercap), data = df)
+}
+
+out_tidy <- gapminder %>%
+    group_by(continent, year) %>%
+    nest() %>% 
+    mutate(model = map(data, fit_ols),
+           tidied = map(model, tidy)) %>%
+    unnest(cols = c(tidied)) %>%
+    filter(term %nin% "(Intercept)" &
+           continent %nin% "Oceania")
+
+out_tidy %>% 
+    ungroup() %>%
+    sample_n(5)
+
+```
+
+```{r 06-models-27, echo = FALSE}
+options(digits = old_digits)
+```
+
+```{r 06-models-28, fig.height=4, fig.width=10, layout = '1-page'}
+
+p <- ggplot(data = out_tidy,
+            mapping = aes(x = year, y = estimate,
+                          ymin = estimate - 2*std.error,
+                          ymax = estimate + 2*std.error,
+                          color = continent, group = continent,
+                          fill = continent))
+
+
+p + geom_pointrange(position = position_dodge(width = 1)) +
+    geom_line() + 
+    geom_ribbon(mapping = aes(x = year, 
+                          ymin = estimate - 2*std.error,
+                          ymax = estimate + 2*std.error,
+                          group = continent,
+                          fill = continent), 
+                 alpha = 0.2, 
+                inherit.aes = FALSE) + 
+    scale_x_continuous(breaks = unique(gapminder$year)) + 
+    theme(legend.position = "top") +
+    labs(x = "Year", y = "Estimate", color = "Continent")
+```
+
+## Grouped Analysis: PCA Example
+
+### On the full dataset ...
+
+```{r pca-1}
+mw_pca <- midwest %>%
+    group_by(state) %>%
+    select_if(is.numeric) %>%
+    select(-PID)
+    
+mw_pca
+
+```
+
+```{r pca-2}
+do_pca <- function(df){
+  prcomp(df,
+         center = TRUE, scale = TRUE)
+}
+
+out_pca <- mw_pca %>%
+    ungroup() %>%
+    select(-state) %>%
+    do_pca()
+
+summary(out_pca)
+
+```
+
+```{r pca-3}
+tidy_pca <- tidy(out_pca, matrix = "pcs")
+
+tidy_pca
+```
+
+
+```{r pca-4}
+tidy_pca %>%
+    ggplot(aes(x = PC, y = percent)) +
+    geom_line() +
+    labs(x = "Principal Component", y = "Variance Explained") 
+```
+
+
+### ... or nested by state
+
+```{r pca-5}
+mw_pca <- mw_pca %>%
+    group_by(state) %>%
+    nest()
+
+mw_pca
+
+```
+
+```{r pca-6}
+
+state_pca <- mw_pca %>% 
+    mutate(pca = map(data, do_pca))
+
+state_pca
+
+```
+
+
+```{r pca-7}
+do_tidy <- function(pr){
+    broom::tidy(pr, matrix = "pcs")
+}
+state_pca  <- mw_pca %>%
+    mutate(pca = map(data, do_pca),
+           pcs = map(pca, do_tidy)) 
+
+state_pca
+
+```
+
+
+```{r pca-8}
+
+state_pca %>%
+    unnest(cols = c(pcs)) %>%
+    ggplot(aes(x = PC, y = percent)) +
+    geom_line(size = 1.1) +
+    facet_wrap(~ state, nrow = 1) +
+    labs(x = "Principal Component",
+         y = "Variance Explained")
+
+```
+
+```{r pca-9}
+do_aug <- function(pr){
+    broom::augment(pr)
+}
+
+
+state_pca  <- mw_pca %>%
+    mutate(pca = map(data, do_pca),
+           pcs = map(pca, do_tidy),
+           fitted = map(pca, do_aug)) 
+
+state_pca
+
+```
+
+
+```{r pca-10}
+
+state_pca %>%
+    unnest(cols = c(fitted)) %>%
+    ggplot(aes(x = .fittedPC1,
+               y = .fittedPC2)) +
+    geom_point() +
+    facet_wrap(~ state) + 
+    labs(x = "First Principal Component", 
+         y = "Second Principal Component") 
+```
+
+### Grouped PCA in a single sequence
+
+```{r pca-11}
+
+midwest %>%
+    group_by(state) %>%
+    select_if(is.numeric) %>%
+    select(-PID) %>%
+    nest() %>%
+    mutate(pca = map(data, do_pca),
+           pcs = map(pca, do_tidy),
+           fitted = map(pca, do_aug)) %>%
+    unnest(cols = c(fitted)) %>%
+    add_column(county = midwest$county) %>%
+    ggplot(mapping = aes(x = .fittedPC2,
+               y = .fittedPC3,
+               label = county)) +
+    geom_text(size = 1.1) +
+    labs(x = "Second Principal Component", 
+         y = "Third Principal Component") +
+    theme_minimal() + facet_wrap(~ state, ncol = 2)
+
+```
+
+
+## Plot marginal effects
+
+Note that calculating marginal effects can take some time!
+
+```{r 06-models-29}
+library(margins)
+```
+
+```{r 06-models-30}
+
+gss_sm$polviews_m <- relevel(gss_sm$polviews, ref = "Moderate")
+
+out_bo <- glm(obama ~ polviews_m + sex*race,
+              family = "binomial", data = gss_sm)
+summary(out_bo)
+```
+
+
+```{r 06-models-31}
+bo_m <- margins(out_bo)
+summary(bo_m)
+```
+
+
+```{r 06-models-32}
+bo_gg <- as_tibble(summary(bo_m))
+prefixes <- c("polviews_m", "sex")
+bo_gg$factor <- prefix_strip(bo_gg$factor, prefixes)
+bo_gg$factor <- prefix_replace(bo_gg$factor, "race", "Race: ")
+
+bo_gg %>% select(factor, AME, lower, upper) 
+```
+
+
+```{r 06-models-33}
+p <- ggplot(data = bo_gg, aes(x = reorder(factor, AME),
+                              y = AME, ymin = lower, ymax = upper))
+
+p + geom_hline(yintercept = 0, color = "gray80") +
+    geom_pointrange() + coord_flip() +
+    labs(x = NULL, y = "Average Marginal Effect") 
+
+```
+
+
+```{r 06-models-34}
+pv_cp <- cplot(out_bo, x = "sex", draw = FALSE)
+
+p <- ggplot(data = pv_cp, aes(x = reorder(xvals, yvals),
+                              y = yvals, ymin = lower, ymax = upper))
+
+p + geom_hline(yintercept = 0, color = "gray80") +
+    geom_pointrange() + coord_flip() +
+    labs(x = NULL, y = "Conditional Effect") 
+
+```
+
+
+## Plots from complex surveys
+
+```{r 06-models-35}
+library(survey)
+library(srvyr)
+```
+
+
+```{r 06-models-36}
+options(survey.lonely.psu = "adjust")
+options(na.action="na.pass")
+
+gss_wt <- subset(gss_lon, year > 1974) %>%
+    mutate(stratvar = interaction(year, vstrat)) %>%
+    as_survey_design(ids = vpsu,
+                     strata = stratvar,
+                     weights = wtssall,
+                     nest = TRUE)
+```
+
+
+```{r svy_withingroup, tidy = FALSE}
+
+out_grp <- gss_wt %>%
+    filter(year %in% seq(1976, 2016, by = 4)) %>%
+    group_by(year, race, degree) %>%
+    summarize(prop = survey_mean(na.rm = TRUE))
+
+out_grp
+
+```
+
+```{r svy_marginals1}
+
+out_mrg <- gss_wt %>%
+    filter(year %in% seq(1976, 2016, by = 4)) %>%
+    mutate(racedeg = interaction(race, degree)) %>%
+    group_by(year, racedeg) %>%
+    summarize(prop = survey_mean(na.rm = TRUE))
+
+out_mrg
+
+
+```
+
+```{r svy_marginals2}
+
+out_mrg <- gss_wt %>%
+    filter(year %in% seq(1976, 2016, by = 4)) %>%
+    mutate(racedeg = interaction(race, degree)) %>%
+    group_by(year, racedeg) %>%
+    summarize(prop = survey_mean(na.rm = TRUE)) %>%
+    separate(racedeg, sep = "\\.", into = c("race", "degree"))
+
+out_mrg
+
+
+```
+
+
+```{r ch-06-svyyears, fig.cap='Weighted estimates of educational attainment for Whites and Blacks, GSS selected years 1976-2016. Faceting barplots is often a bad idea, and the more facets there are the worse an idea it is. With a small-multiple plot the viewer wants to compare across panels (in this case, over time), but this is difficult to do when the data inside the panels are categorical comparisons shown as bars (in this case, education level by group).', layout = '1-page', fig.width = 6, fig.height = 12}
+
+p <- ggplot(data = subset(out_grp, race %nin% "Other"),
+            mapping = aes(x = degree, y = prop,
+                          ymin = prop - 2*prop_se,
+                          ymax = prop + 2*prop_se,
+                          fill = race,
+                          color = race,
+                          group = race))
+
+dodge <- position_dodge(width=0.9)
+
+p + geom_col(position = dodge, alpha = 0.2) +
+    geom_errorbar(position = dodge, width = 0.2) +
+    scale_x_discrete(labels = scales::wrap_format(10)) +
+    scale_y_continuous(labels = scales::percent) +
+    scale_color_brewer(type = "qual", palette = "Dark2") +
+    scale_fill_brewer(type = "qual", palette = "Dark2") +
+    labs(title = "Educational Attainment by Race",
+         subtitle = "GSS 1976-2016",
+         fill = "Race",
+         color = "Race",
+         x = NULL, y = "Percent") +
+    facet_wrap(~ year, ncol = 2) +
+    theme(legend.position = "top")
+
+```
+
+
+```{r ch-06-svyyears2, fig.cap='Faceting by education instead.', fig.width = 4, fig.height = 9}
+
+p <- ggplot(data = subset(out_grp, race %nin% "Other"),
+            mapping = aes(x = year, y = prop, ymin = prop - 2*prop_se,
+                          ymax = prop + 2*prop_se, fill = race, color = race,
+                          group = race))
+
+p + geom_ribbon(alpha = 0.3, aes(color = NULL)) +
+    geom_line() + 
+    facet_wrap(~ degree, ncol = 1) +
+    scale_y_continuous(labels = scales::percent) +
+    scale_color_brewer(type = "qual", palette = "Dark2") +
+    scale_fill_brewer(type = "qual", palette = "Dark2") +
+    labs(title = "Educational Attainment\nby Race",
+         subtitle = "GSS 1976-2016", fill = "Race",
+         color = "Race", x = NULL, y = "Percent") +
+    theme(legend.position = "top")
+```
+
+
+
+### Default plots for models
+
+```{r baseplot}
+out <- lm(formula = lifeExp ~ log(gdpPercap) + pop + continent, data = gapminder)
+```
+
+
+```{r 06-models-37}
+plot(out, which = c(1,2), ask=FALSE)
+```
+

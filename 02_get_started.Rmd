@@ -1,0 +1,207 @@
+---
+title: "Get Started"
+author: "Kieran Healy"
+date: "10-January-2020"
+output: html_document
+---
+
+## Load Libraries
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(here)
+library(tidyverse)
+library(socviz)
+```
+
+A code chunk:
+
+```{r 02-get-started-1}
+
+```
+
+## Things to know about R
+
+### Everything has a name
+
+```{r 02-get-started-2}
+
+```
+
+
+### Everything is an object
+
+```{r objects}
+c(1, 2, 3, 1, 3, 5, 25)
+
+```
+
+```{r create_objects}
+my_numbers <- c(1, 2, 3, 1, 3, 5, 25)
+
+your_numbers <- c(5, 31, 71, 1, 3, 21, 6)
+```
+
+```{r 02-get-started-3}
+my_numbers
+```
+
+
+### You do things using functions
+
+```{r 02-get-started-4}
+my_numbers
+```
+
+
+```{r this_will_error, eval = FALSE}
+mean()
+```
+
+```{r 02-get-started-5}
+mean(x = my_numbers)
+
+mean(x = your_numbers)
+```
+
+```{r 02-get-started-6}
+mean(my_numbers)
+```
+
+```{r 02-get-started-7}
+my_summary <- summary(my_numbers)
+```
+
+
+```{r 02-get-started-8}
+my_summary
+```
+
+
+### Functions come in libraries
+
+```{r output}
+
+table(my_numbers)
+
+sd(my_numbers)
+
+my_numbers * 5
+
+my_numbers + 1
+
+my_numbers + my_numbers
+
+```
+
+### If you're not sure what an object is, ask for its class
+
+```{r getclass}
+class(my_numbers)
+class(my_summary)
+class(summary)
+```
+
+
+```{r 02-get-started-9}
+my_new_vector <- c(my_numbers, "Apple")
+my_new_vector
+class(my_new_vector)
+```
+
+
+```{r titanic1}
+titanic
+class(titanic)
+```
+
+```{r titanic2}
+titanic$percent
+```
+
+
+```{r titanic3}
+titanic_tb <- as_tibble(titanic)
+titanic_tb
+```
+
+
+### To see inside an object, ask for its structure, or use RStudio's object inspector
+
+```{r str}
+
+str(my_numbers)
+str(my_summary)
+
+```
+
+
+## Be patient with R, and with yourself
+
+Here are three very specific things to watch out for:
+  
+- Make sure parentheses are balanced and that every opening "`(`" has
+  a corresponding closing "`)`".
+- Make sure you complete your expressions. If you think you have completed typing your code, but instead of seeing the `>` command prompt at the console you see the `+`
+  character instead, that may mean R thinks you haven't written a complete
+  expression yet. You can hit `Esc` or `Ctrl-C` to force your way back to the console and try typing your code again. 
+- In ggplot specifically, as you will see, we will build up plots a
+  piece at a time by adding expressions to one another. When doing
+  this, make sure your `+` character goes at the end of the line, and
+  not the beginning. That is, write this:
+
+
+```{r 02-get-started-10, echo=TRUE, eval=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy)) +
+    geom_point()
+```
+
+
+and not this:
+
+```{r 02-get-started-11, echo=TRUE, eval=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy))
++ geom_point()
+```
+
+
+## Get data into R
+
+Remotely: 
+
+```{r 02-get-started-12, echo = TRUE, eval = FALSE}
+
+url <- "https://cdn.rawgit.com/kjhealy/viz-organdata/master/organdonation.csv"
+
+organs <- read_csv(file = url)
+```
+
+
+Or locally:
+
+```{r 02-get-started-13}
+
+organs <- read_csv(file = "data/organdonation.csv")
+
+
+organs
+```
+
+## Make your first figure 
+
+```{r gapminder-example-1}
+gapminder
+```
+
+
+```{r first_plot, fig.height=6, fig.width=10, fig.cap="Life expectancy plotted against GDP per capita for a large number of country-years."}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap, y = lifeExp))
+p + geom_point() + 
+  geom_smooth(mapping = aes(color = continent, fill = continent)) + 
+  scale_x_log10(labels = scales::dollar)
+
+```

@@ -1,0 +1,220 @@
+---
+title: "Make a Plot"
+author: "Kieran Healy"
+date: "10-January-2020"
+output: html_document
+---
+
+## Load Libraries
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(gapminder)
+library(here)
+library(tidyverse)
+library(socviz)
+```
+
+
+## Tidy Data
+
+```{r 03-make-a-plot-1}
+
+```
+
+## Mappings link data to things you see
+
+```{r 03-make-a-plot-2}
+gapminder
+```
+
+
+```{r 03-make-a-plot-3}
+p <- ggplot(data = gapminder)
+```
+
+
+```{r 03-make-a-plot-4}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+```
+
+
+```{r 03-make-a-plot-5, fig.cap='This empty plot has no geoms.', fig.width=8, fig.height=5}
+p
+```
+
+```{r 03-make-a-plot-6, fig.cap='A scatterplot of Life Expectancy vs GDP', fig.width=8, fig.height=5}
+p + geom_point() 
+```
+
+
+## Build your plots layer by layer
+
+```{r 03-make-a-plot-7, fig.cap='Life Expectancy vs GDP, using a smoother.', fig.width=8, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y=lifeExp))
+p + geom_smooth()
+
+```
+
+```{r 03-make-a-plot-8, fig.cap='Life Expectancy vs GDP, showing both points and a GAM smoother.', fig.width=8, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y=lifeExp))
+p + geom_point() + geom_smooth() 
+
+```
+
+```{r 03-make-a-plot-9, fig.cap='Life Expectancy vs GDP, points and an ill-advised linear fit.', fig.width=8, fig.height=5}
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y=lifeExp))
+p + geom_point() + geom_smooth(method = "lm") 
+```
+
+
+```{r 03-make-a-plot-10, fig.cap='Life Expectancy vs GDP scatterplot, with a GAM smoother and a log scale on the x-axis.', fig.width=8, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y=lifeExp))
+p + geom_point() +
+    geom_smooth(method = "gam") +
+    scale_x_log10()
+
+```
+
+```{r 03-make-a-plot-11, fig.cap='Life Expectancy vs GDP scatterplot, with a GAM smoother and a log scale on the x-axis, with better labels on the tick marks.', fig.width=8, fig.height=5}
+
+p <- ggplot(data = gapminder, mapping = aes(x = gdpPercap, y=lifeExp))
+p + geom_point() +
+    geom_smooth(method = "gam") +
+    scale_x_log10(labels = scales::dollar)
+```
+
+
+## Mapping aesthetics vs setting them
+
+```{r 03-make-a-plot-12, fig.cap='What has gone wrong here?', fig.width=8, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp,
+                          color = "purple"))
+p + geom_point() +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+
+```{r 03-make-a-plot-13, fig.cap='Setting the color attribute of the points directly.', fig.width=8, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+p + geom_point(color = "purple") +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+```{r 03-make-a-plot-14, fig.cap='Setting some other arguments.', fig.width=8, fig.height=5, fig.margin=TRUE}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp)) 
+p + geom_point(alpha = 0.3) +
+    geom_smooth(color = "orange", se = FALSE, size = 8, method = "lm") +
+    scale_x_log10()
+```
+
+
+```{r 03-make-a-plot-15, fig.cap='A more polished plot of Life Expectancy vs GDP.', fig.width=8, fig.height=5.25, layout = 'l-page'}
+
+p <- ggplot(data = gapminder, mapping = aes(x = gdpPercap, y=lifeExp))
+p + geom_point(alpha = 0.3) + geom_smooth(method = "gam") +
+    scale_x_log10(labels = scales::dollar) +
+    labs(x = "GDP Per Capita", y = "Life Expectancy in Years",
+         title = "Economic Growth and Life Expectancy",
+         subtitle = "Data points are country-years",
+         caption = "Source: Gapminder.")
+```
+
+
+
+```{r 03-make-a-plot-16, fig.cap='Mapping the continent variable to the color aesthetic.', fig.width=8.5, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp,
+                          color = continent))
+p + geom_point() +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+```{r 03-make-a-plot-17, fig.cap='Mapping the continent variable to the color aesthetic, and correcting the error bars using the fill aesthetic.', fig.width=8.5, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp,
+                          color = continent,
+                          fill = continent))
+p + geom_point() +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+## Aesthetics can be mapped per geom
+
+```{r 03-make-a-plot-18, fig.cap='Mapping aesthetics on a per-geom basis. Here color is mapped to continent for the points but not the smoother.', fig.width=8.5, fig.height=5}
+
+p <- ggplot(data = gapminder, mapping = aes(x = gdpPercap, y = lifeExp))
+p + geom_point(mapping = aes(color = continent)) +
+    geom_smooth(method = "loess") +
+    scale_x_log10()
+```
+
+
+```{r 03-make-a-plot-19, fig.cap='Mapping a continuous variable to color.', out.width="100%", fig.width=8.5, fig.height=5}
+
+p <- ggplot(data = gapminder,
+            mapping = aes(x = gdpPercap,
+                          y = lifeExp))
+p + geom_point(mapping = aes(color = log(pop))) +
+    scale_x_log10()    
+```
+
+## Save your work
+
+```{r knitopt, echo = TRUE, eval = FALSE}
+knitr::opts_chunk$set(fig.width=8, fig.height=5) 
+```
+
+
+```{r 03-make-a-plot-20, echo=TRUE, eval=FALSE}
+ggsave(filename = "figures/my_figure.png")
+```
+
+
+```{r 03-make-a-plot-21}
+here() 
+```
+
+```{r 03-make-a-plot-22}
+
+p_out <- p + geom_point(mapping = aes(color = log(pop))) +
+    scale_x_log10()
+
+ggsave(here("figures", "lifexp_vs_gdp_gradient.pdf"), plot = p_out)
+
+ggsave(here("figures", "lifexp_vs_gdp_gradient.png"), plot = p_out)
+```
+
+
+
