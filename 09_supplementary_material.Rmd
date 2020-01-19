@@ -356,7 +356,7 @@ df %>%
 df_f <- df %>% modify_if(is.character, as.factor)
 
 df_f %>%
-    group_by(start_year, party, sex) %>%
+    group_by(start_year, party, sex, .drop = FALSE) %>%
     tally()
 
 ```
