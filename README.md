@@ -64,15 +64,30 @@ If you do not have one already, it will be useful to create a GitHub account and
 
 ## Schedule
 
-| Time          | Activity         |
-| :------------ | :--------------- |
-| 09:00 - 10:30 | Session 1        |
-| 10:30 - 11:00 | *Coffee break*   |
-| 11:00 - 12:30 | Session 2        |
-| 12:30 - 13:30 | *Lunch break*    |
-| 13:30 - 15:00 | Session 3        |
-| 15:00 - 15:30 | *Coffee break*   |
-| 15:30 - 17:00 | Session 4        |
+### Day 1
+
+| Time          | Activity               |
+| :------------ | :---------------       |
+| 09:00 - 10:30 | Looking at data        |
+| 10:30 - 11:00 | *Coffee break*         |
+| 11:00 - 12:30 | Make some plots        |
+| 12:30 - 13:30 | *Lunch break*          |
+| 13:30 - 15:00 | Show the right numbers |
+| 15:00 - 15:30 | *Coffee break*         |
+| 15:30 - 17:00 | Working with Geoms     |
+
+### Day 2
+
+| Time          | Activity           |
+| :------------ | :---------------   |
+| 09:00 - 10:30 | Plots from Models  |
+| 10:30 - 11:00 | *Coffee break*     |
+| 11:00 - 12:30 | Making Maps        |
+| 12:30 - 13:30 | *Lunch break*      |
+| 13:30 - 15:00 | Polishing Plots    |
+| 15:00 - 15:30 | *Coffee break*     |
+| 15:30 - 17:00 | ggplot in Practice |
+
 
 ## Instructor
 
