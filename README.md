@@ -10,8 +10,8 @@ by Kieran Healy
 :spiral_calendar: January 27 and 28, 2020  
 :alarm_clock:     09:00 - 17:00  
 :hotel:           Golden Gate Rooms 6-7 (Lobby Level)  
-:writing_hand:    [rstd.io/conf20-dataviz](http://rstd.io/conf20-dataviz)
-:globe:           [RStudio Community Page](https://community.rstudio.com/t/a-practical-introduction-to-data-visualization-with-ggplot2-workshop-rstudio-conf-2020/49100)  
+:writing_hand:    [rstd.io/conf20-dataviz](http://rstd.io/conf20-dataviz)  
+:earth_americas:           [RStudio Community Page](https://community.rstudio.com/t/a-practical-introduction-to-data-visualization-with-ggplot2-workshop-rstudio-conf-2020/49100)  
 
 <!-- ----- -->
 
