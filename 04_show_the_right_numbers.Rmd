@@ -79,7 +79,7 @@ p + geom_point(alpha = 0.2) + geom_smooth() +
 
 ### Geoms can transform data
 
-```{r histogram}
+```{r bar1}
 
 p <- ggplot(data = gss_sm,
             mapping = aes(x = bigregion))
@@ -87,7 +87,7 @@ p + geom_bar()
 
 ```
 
-```{r histogram_2}
+```{r bar2}
 
 p <- ggplot(data = gss_sm,
             mapping = aes(x = bigregion))
@@ -95,7 +95,7 @@ p + geom_bar(mapping = aes(y = ..prop..))
 
 ```
 
-```{r histogram_3}
+```{r bar3}
 
 p <- ggplot(data = gss_sm,
             mapping = aes(x = bigregion))
@@ -104,60 +104,6 @@ p + geom_bar(mapping = aes(y = ..prop.., group = 1))
 
 ```
 
-### Frequency Plots the Slightly Awkward Way
-
-```{r gss_tab}
-
-table(gss_sm$religion)
-
-```
-
-```{r gss_color_fill}
-
-
-p <- ggplot(data = gss_sm,
-            mapping = aes(x = religion, color = religion))
-p + geom_bar()
-
-p <- ggplot(data = gss_sm,
-            mapping = aes(x = religion, fill = religion))
-p + geom_bar() + guides(fill = FALSE)
-
-```
-
-```{r two_way_1}
-
-p <- ggplot(data = gss_sm,
-            mapping = aes(x = bigregion, 
-                          fill = religion))
-p + geom_bar()
-
-```
-
-```{r two_way_2}
-p <- ggplot(data = gss_sm,
-            mapping = aes(x = bigregion, 
-                          fill = religion))
-p + geom_bar(position = "fill")      
-```
-
-```{r two_way_3}
-p <- ggplot(data = gss_sm,
-            mapping = aes(x = bigregion, 
-                          fill = religion))
-p + geom_bar(position = "dodge",
-             mapping = aes(y = ..prop..))      
-```
-
-
-```{r two_way_4}
-p <- ggplot(data = gss_sm,
-            mapping = aes(x = bigregion, 
-                          fill = religion))
-p + geom_bar(position = "dodge",
-             mapping = aes(y = ..prop.., 
-                           group = religion))       
-```
 
 ### Histograms and Density Plots 
 
@@ -241,3 +187,57 @@ p + geom_col() + guides(fill = FALSE) +
 
 ```
 
+### Frequency Plots the Slightly Awkward Way
+
+```{r gss_tab}
+
+with(gss_sm, table(religion))
+
+```
+
+```{r gss_color_fill}
+
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = religion, color = religion))
+p + geom_bar()
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = religion, fill = religion))
+p + geom_bar() + guides(fill = FALSE)
+
+```
+
+```{r two_way_1}
+
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar()
+
+```
+
+```{r two_way_2}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar(position = "fill")      
+```
+
+```{r two_way_3}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar(position = "dodge",
+             mapping = aes(y = ..prop..))      
+```
+
+
+```{r two_way_4}
+p <- ggplot(data = gss_sm,
+            mapping = aes(x = bigregion, 
+                          fill = religion))
+p + geom_bar(position = "dodge",
+             mapping = aes(y = ..prop.., 
+                           group = religion))       
+```

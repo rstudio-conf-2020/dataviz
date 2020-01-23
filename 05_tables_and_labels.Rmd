@@ -24,9 +24,9 @@ library(socviz)
 
 rel_by_region <- gss_sm %>%
     group_by(bigregion, religion) %>%
-    summarize(N = n()) %>%
-    mutate(freq = N / sum(N),
-           pct = round((freq*100), 0))
+    tally() %>%
+    mutate(freq = n / sum(n),
+           pct = round((freq*100), 1))
 
 ```
 
@@ -34,6 +34,25 @@ rel_by_region <- gss_sm %>%
 ```{r 05-tables-and-labels-1 }
 rel_by_region
 ```
+
+```{r 05-aside-n}
+gss_sm %>%
+    group_by(bigregion, religion) %>%
+    summarize(n = n())
+```
+
+```{r 05-aside-tally}
+gss_sm %>%
+    group_by(bigregion, religion) %>%
+    tally()
+
+```
+
+```{r 05-aside-count}
+gss_sm %>%
+    count(bigregion, religion)
+```
+
 
 
 ```{r 05-tables-and-labels-2 }
@@ -46,7 +65,7 @@ rel_by_region %>% group_by(bigregion) %>%
 ## devtools::install_github("tidyverse/ggplot2")
 
 p <- ggplot(rel_by_region, aes(x = bigregion, y = pct, fill = religion))
-p + geom_col(position = "dodge2") +
+p + geom_col(position = "dodge") +
     labs(x = "Region",y = "Percent", fill = "Religion") +
     theme(legend.position = "top")      
 ```
@@ -57,7 +76,24 @@ p + geom_col(position = "dodge") +
     labs(x = NULL, y = "Percent", fill = "Religion") +
     guides(fill = FALSE) + 
     coord_flip() + 
-    facet_grid(~ bigregion)      
+    facet_wrap(~ bigregion, nrow = 1)      
+```
+
+```{r grid_v_wrap}
+p <-  ggplot(data = gss_sm,
+             mapping = aes(x = age, y = childs))
+
+
+p + geom_point(alpha = 0.2) + geom_smooth() +
+    facet_wrap(sex ~ race)
+
+p + geom_point(alpha = 0.2) + geom_smooth() +
+  facet_grid(sex ~ race)
+
+
+p + geom_point(alpha = 0.2) + geom_smooth() +
+  facet_grid(bigregion ~ sex + race)
+
 ```
 
 ## Continuous variables by category
