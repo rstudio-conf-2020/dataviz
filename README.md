@@ -44,11 +44,11 @@ We will be working with the most recent stable versions of R and RStudio, as wel
 
 ``` r
 my_packages <- c("tidyverse", "broom", "coefplot", "cowplot", "drat",
-                 "gapminder", "GGally", "ggforce", "ggraph", "ggrepel", "ggridges",  
+                 "gapminder", "GGally", "ggrepel", "ggridges",  
                  "graphlayouts", "gridExtra", "here", "interplot", "margins", 
                  "maps", "mapproj", "mapdata", "MASS", "naniar", "prismatic", 
                  "quantreg", "rlang", "scales", "socviz", "survey", "srvyr", 
-                 "viridis", "viridisLite", "devtools")
+                 "viridis", "viridisLite", "devtools", "ggforce", "ggraph", "sf")
 
 install.packages(my_packages, repos = "http://cran.rstudio.com")
 
