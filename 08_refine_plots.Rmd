@@ -570,7 +570,7 @@ out_ff
 
 ```
 
-```{r gss5}
+```{r gss5, fig.height = 6, fig.width = 8}
 facet_names <- c("No" = "Age Over 25 when surveyed", 
                  "Yes" = "Age 18-25 when surveyed")
 
@@ -604,7 +604,7 @@ ggsave("figures/fefam_svy.png", p, width = 8, height = 6, dpi = 300)
 
 ```
 
-```{r gss6}
+```{r gss6, fig.height = 8, fig.width = 12}
 out_ff_agequint <- gss_svy %>%
   group_by(year, agequint, fefam_d) %>%
   summarize(prop = survey_mean(na.rm = TRUE, vartype = "se")) %>%
@@ -649,7 +649,7 @@ ggsave("figures/fefam_age_quin_svy.png", p, height = 7, width = 12, dpi = 300)
 
 ```
 
-```{r gss7}
+```{r gss7, fig.heigh = 7, fig.width = 13}
 
 cohort_comp <- gss_svy %>%
   filter(year %in% c(1977, 2018) &
@@ -690,7 +690,8 @@ p <- ggplot(cohort_comp,
        subtitle = "Responses to the statement ‘It is much better for everyone involved if the man is the\nachiever outside the home and the woman takes care of the home and family’",
        caption = "Kieran Healy http://socviz.co.\nData source: General Social Survey. Shaded ranges are population-adjusted standard errors for each age group.")
 
-ggsave("figures/fefam_age_quin_svy_synth.png", p, height = 7, width = 13, dpi = 300)
+print(p)
 
+ggsave("figures/fefam_age_quin_svy_synth.png", p, height = 7, width = 13, dpi = 300)
 
 ```
