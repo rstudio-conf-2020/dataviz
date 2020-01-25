@@ -649,7 +649,7 @@ ggsave("figures/fefam_age_quin_svy.png", p, height = 7, width = 12, dpi = 300)
 
 ```
 
-```{r gss6}
+```{r gss7}
 
 cohort_comp <- gss_svy %>%
   filter(year %in% c(1977, 2018) &
