@@ -448,3 +448,249 @@ p + geom_bar(stat = "identity", color = "gray80") +
 
 ```
 
+### Some worked examples with GSS data
+
+```{r drat-gss}
+
+## drat::addRepo("kjhealy")
+## install.packages("gssr")
+
+library(gssr)
+
+data(gss_all)
+
+gss_all
+```
+
+```{r gss-1}
+
+library(ggrepel)
+library(forcats)
+library(haven)
+
+library(survey)
+library(srvyr)
+
+theme_set(theme_minimal())
+
+options(survey.lonely.psu = "adjust")
+options(na.action="na.pass")
+
+my_colors <- function (palette = "cb"){
+  cb_palette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
+                  "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  rcb_palette <- rev(cb_palette)
+  bly_palette <- c("#E69F00", "#0072B2", "#000000", "#56B4E9", 
+                   "#009E73", "#F0E442", "#D55E00", "#CC79A7")
+  error <- "Choose cb, rcb, or bly only."
+  case_when(
+    palette == "cb" ~ cb_palette,
+    palette == "rcb" ~ rcb_palette, 
+    palette == "bly" ~ bly_palette
+  )
+}
+
+convert_agegrp <- function(x){
+  x <- stringr::str_replace_all(x, "\\(", "")
+  x <- stringr::str_replace_all(x, "\\[", "")
+  x <- stringr::str_replace_all(x, "\\]", "")
+  x <- stringr::str_replace_all(x, ",", "-")
+  x <- stringr::str_replace_all(x, "-89", "+")
+  regex <- "^(.*$)"
+  x <- stringr::str_replace_all(x, regex, "Age \\1")
+  x
+}
+
+cont_vars <- c("year", "id", "ballot", "age")
+
+cat_vars <- c("race", "sex", "fefam")
+
+wt_vars <- c("vpsu",
+             "vstrat",
+             "oversamp",
+             "formwt",              # weight to deal with experimental randomization
+             "wtssall",             # weight variable
+             "sampcode",            # sampling error code
+             "sample")              # sampling frame and method
+
+vars <- c(cont_vars, cat_vars, wt_vars)
+
+quintiles <- quantile(as.numeric(gss_all$age), 
+                      probs = seq(0, 1, 0.2), 
+                      na.rm = TRUE)
+
+```
+
+```{r gss2}
+gss_svy <- gss_all %>%
+  select(vars) %>%
+  filter(year > 1974) %>%
+  modify_at(vars(), zap_missing) %>%
+  modify_at(wt_vars, as.numeric) %>%
+  modify_at(cat_vars, as_factor) %>%
+  mutate(agequint = cut(x = age, breaks = unique(quintiles), include.lowest = TRUE),
+         agequint = fct_relabel(agequint, convert_agegrp),
+         year_f = droplevels(factor(year)),
+         young = ifelse(age < 26, "Yes", "No"),
+         fefam = fct_recode(fefam, NULL = "IAP", NULL = "DK", NULL = "NA"),
+         fefam = fct_relabel(fefam, snakecase::to_title_case),
+         fefam_d = fct_recode(fefam,
+                              Agree = "Strongly Agree",
+                              Disagree = "Strongly Disagree"))
+
+gss_svy
+```
+
+```{r gss3}
+gss_svy <- gss_svy %>%
+  mutate(compwt = oversamp * formwt * wtssall, 
+         samplerc = ifelse(sample %in% 3:4, 3,
+                           ifelse(sample %in% 6:7, 6,
+                                  sample)))
+
+gss_svy <- gss_svy %>%
+  drop_na(fefam_d) %>%
+  mutate(stratvar = interaction(year, vstrat)) %>%
+  as_survey_design(id = vpsu,
+                   strata = stratvar,
+                   weights = wtssall,
+                   nest = TRUE)
+
+gss_svy
+
+```
+
+```{r gss4}
+out_ff <- gss_svy %>%
+  group_by(year, sex, young, fefam_d) %>%
+  summarize(prop = survey_mean(na.rm = TRUE, vartype = "ci")) %>%
+  drop_na()
+
+out_ff
+
+```
+
+```{r gss5}
+facet_names <- c("No" = "Age Over 25 when surveyed", 
+                 "Yes" = "Age 18-25 when surveyed")
+
+p <- ggplot(subset(out_ff, fefam_d == "Disagree"),
+            aes(x = year, y = prop,
+                ymin = prop_low, ymax = prop_upp,
+                color = sex, group = sex, fill = sex)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(alpha = 0.3, color = NA) +
+  scale_x_continuous(breaks = seq(1978, 2018, 4)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_color_manual(values = my_colors("bly")[2:1],
+                     labels = c("Men", "Women"),
+                     guide = guide_legend(title=NULL)) +
+  scale_fill_manual(values = my_colors("bly")[2:1],
+                    labels = c("Men", "Women"),
+                    guide = guide_legend(title=NULL)) +
+  facet_wrap(~ young, labeller = as_labeller(facet_names),
+             ncol = 1) +
+  coord_cartesian(xlim = c(1977, 2017)) +
+  labs(x = "Year",
+       y = "Percent Disagreeing",
+       subtitle = "Disagreement with the statement, ‘It is much better for\neveryone involved if the man is the achiever outside the\nhome and the woman takes care of the home and family’",
+       caption = "Kieran Healy http://socviz.co.\nData source: General Social Survey") +
+  theme(legend.position = "bottom")
+
+
+print(p)
+
+ggsave("figures/fefam_svy.png", p, width = 8, height = 6, dpi = 300)
+
+```
+
+```{r gss6}
+out_ff_agequint <- gss_svy %>%
+  group_by(year, agequint, fefam_d) %>%
+  summarize(prop = survey_mean(na.rm = TRUE, vartype = "se")) %>%
+  mutate(end_label = if_else(year == max(year),
+                             socviz::prefix_strip(as.character(agequint), "Age "), 
+                             NA_character_),
+         start_label = if_else(year == min(year),
+                               socviz::prefix_strip(as.character(agequint), "Age "), 
+                               NA_character_))
+
+man_cols <- RColorBrewer::brewer.pal(9, "Blues")
+man_cols <- man_cols[4:9]
+
+
+p <- ggplot(subset(out_ff_agequint, fefam_d == "Disagree"),
+            aes(x = year, y = prop, ymin = prop - prop_se, ymax = prop + prop_se,
+                color = agequint, group = agequint, fill = agequint)) +
+  geom_line(size = 1.2) +
+  geom_ribbon(alpha = 0.3, color = NA) +
+  scale_x_continuous(breaks = seq(1978, 2018, 4)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = man_cols) +
+  scale_color_manual(values = man_cols) +
+  guides(fill = FALSE, color = FALSE) +
+  annotate("text", x = 1974.5, y = 0.58, label = "Age at time\nof survey", size = 3, hjust = 0, fontface = "bold", lineheight = 0.9) +
+  annotate("text", x = 2020.8, y = 0.95, label = "Age at time\nof survey", size = 3, hjust = 1, fontface = "bold", lineheight = 0.8) +
+  geom_label_repel(aes(label = end_label), color = "white", nudge_x = 1) +
+  geom_label_repel(aes(label = start_label), color = "white", nudge_x = -1) +
+  coord_cartesian(xlim = c(1976, 2019)) +
+  labs(x = "Year",
+       y = "Percent",
+       title = "Changing Attitudes to Gender Roles, by Age Quintiles",
+       subtitle = "Percent Disagreeing with the statement, ‘It is much better for everyone involved if the man is the\nachiever outside the home and the woman takes care of the home and family’",
+       caption = "Kieran Healy http://socviz.co.\nData source: General Social Survey. Shaded ranges are population-adjusted standard errors for each age group.") +
+  theme(legend.position = "right")
+
+
+print(p)
+
+ggsave("figures/fefam_age_quin_svy.png", p, height = 7, width = 12, dpi = 300)
+
+
+```
+
+```{r gss6}
+
+cohort_comp <- gss_svy %>%
+  filter(year %in% c(1977, 2018) &
+           agequint %in% c("Age 18-29", "Age 63+")) %>%
+  mutate(cohort = interaction(agequint, year),
+         cohort = droplevels(cohort)) %>%
+  group_by(cohort, fefam) %>%
+  summarize(prop = survey_mean(na.rm = TRUE, vartype = "se")) %>%
+  mutate(cohort = fct_relabel(cohort, ~ stringr::str_replace_all(.x, "\\.", " in ")),
+         cohort = factor(cohort,
+                         levels = c("Age 18-29 in 2018", "Age 63+ in 1977",
+                                    "Age 18-29 in 1977", "Age 63+ in 2018"),
+                         ordered = TRUE),
+         compare = case_when(cohort %in% c("Age 18-29 in 1977",
+                                           "Age 63+ in 2018") ~ "Comparing Approximately the Same Cohort in 1977 and 2018",
+                             cohort %in% c("Age 18-29 in 2018",
+                                           "Age 63+ in 1977") ~ "Comparing the Old in 1977 vs the Young in 2018"),
+         end_label = if_else(fefam == "Strongly Disagree",
+                             socviz::prefix_strip(as.character(cohort), "Age "), NA_character_))
+
+
+p <- ggplot(cohort_comp,
+            aes(x = fefam, y = prop, group = cohort,
+                color = cohort, fill = cohort, 
+                ymin = prop - prop_se, 
+                ymax = prop + prop_se)) +
+  geom_point(size = 3) + geom_line(size = 1.2) +
+  geom_ribbon(alpha = 0.2, color = NA) +
+  scale_color_manual(values = my_colors()) +
+  scale_fill_manual(values = my_colors()) +
+  guides(fill = FALSE, color = FALSE) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  geom_label_repel(aes(label = end_label), fill = "white",
+                   size = 2.2, segment.colour = NA, nudge_x = 0.7) +
+  facet_wrap(~ compare) +
+  labs(y = "Percent", x = NULL,
+       title = "Generational Replacement, or, People Don't Change Much, They Just Get Old",
+       subtitle = "Responses to the statement ‘It is much better for everyone involved if the man is the\nachiever outside the home and the woman takes care of the home and family’",
+       caption = "Kieran Healy http://socviz.co.\nData source: General Social Survey. Shaded ranges are population-adjusted standard errors for each age group.")
+
+ggsave("figures/fefam_age_quin_svy_synth.png", p, height = 7, width = 13, dpi = 300)
+
+
+```
