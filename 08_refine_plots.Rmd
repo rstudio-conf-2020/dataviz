@@ -590,7 +590,6 @@ p <- ggplot(subset(out_ff, fefam_d == "Disagree"),
                     guide = guide_legend(title=NULL)) +
   facet_wrap(~ young, labeller = as_labeller(facet_names),
              ncol = 1) +
-  coord_cartesian(xlim = c(1977, 2017)) +
   labs(x = "Year",
        y = "Percent Disagreeing",
        subtitle = "Disagreement with the statement, ‘It is much better for\neveryone involved if the man is the achiever outside the\nhome and the woman takes care of the home and family’",
