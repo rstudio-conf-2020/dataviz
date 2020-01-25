@@ -683,7 +683,7 @@ p <- ggplot(cohort_comp,
   guides(fill = FALSE, color = FALSE) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   geom_label_repel(aes(label = end_label), fill = "white",
-                   size = 2.2, segment.colour = NA, nudge_x = 0.7) +
+                   size = 2.2, segment.colour = NA, nudge_x = 0.6) +
   facet_wrap(~ compare) +
   labs(y = "Percent", x = NULL,
        title = "Generational Replacement, or, People Don't Change Much, They Just Get Old",
