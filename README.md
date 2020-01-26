@@ -15,11 +15,11 @@ by Kieran Healy
 
 <!-- ----- -->
 
-<!-- ## Overview -->
+## Overview
 
-<!-- This course will teach you how to think about good data visualization, and how to do it. We begin with some core principles about how we see graphs, what makes some of them better than others, and how to begin cultivating good judgment about visualization. Then, through a series of worked examples, you will learn how to use ggplot to make graphs piece by piece. The emphasis throughout is on acquiring a practical feel for and good judgement about the way ggplot can be used, from the simplest cases to sophisticated, highly customized data visualizations.   -->
+This course will teach you how to think about good data visualization, and how to do it. We begin with some core principles about how we see graphs, what makes some of them better than others, and how to begin cultivating good judgment about visualization. Then, through a series of worked examples, you will learn how to use ggplot to make graphs piece by piece. The emphasis throughout is on acquiring a practical feel for and good judgement about the way ggplot can be used, from the simplest cases to sophisticated, highly customized data visualizations.
 
-<!-- ## Learning objectives -->
+## Learning objectives
 
 The effective use of graphs and charts is an important way to explore data for yourself and to communicate your ideas and results to others. Being able to produce effective plots from data is also the best way to develop an eye for reading and critically understanding visualizations made by others, whether presented in academia, business, policy, or the media. Learning how to visualize data effectively is more than just knowing how to write code that produces figures from data. This course will teach you how to do that. But it will also teach you how to think about the information you want to show, and how best to present it to your audience—including when the audience is yourself.
 
@@ -42,7 +42,7 @@ We will be working with the most recent stable versions of R and RStudio, as wel
 - If you are running the software locally on your laptop, begin by installing R (<http://cloud.r-project.org>) and RStudio (<http://rstudio.com>). 
 - Once the applications are installed, launch RStudio. Either type or copy and paste the following lines of code at R’s command prompt, located in the RStudio window named “Console”, and then hit return. In the code below, the <- arrow is made up of two keystrokes, first < and then the short dash or minus symbol, -.
 
-``` r
+``` R
 my_packages <- c("tidyverse", "broom", "coefplot", "cowplot", "drat",
                  "gapminder", "GGally", "ggrepel", "ggridges",  
                  "graphlayouts", "gridExtra", "here", "interplot", "margins", 
@@ -60,6 +60,9 @@ If you do not have one already, it will be useful to create a GitHub account and
 
 [Instructions to follow]
 
+## Slides and Code
+
+I will make all the slides from the course available to you at the end of the workshop. The code for all the examples is contained in the `.Rmd` files in this repository.
 
 ## Schedule
 
