@@ -298,8 +298,10 @@ p + geom_point() +
 ```
 
 ```{r 05-tables-and-labels-21 }
-organdata$ind <- organdata$ccode %in% c("Ita", "Spa") &
-                    organdata$year > 1998
+
+organdata <- organdata %>%
+       mutate(ind = ccode %in% c("Ita", "Spa") &
+                    organdata$year > 1998)
 
 p <- ggplot(data = organdata,
             mapping = aes(x = roads,
