@@ -26,7 +26,7 @@ head(asasec)
 
 ```{r 08-refine-plots-2, fig.height=12, fig.width=14, out.width="100%"}
 
-pdf(file = "~/Desktop/asa_sections.pdf", height = 8, width = 12)
+pdf(file = "figures/asa_sections.pdf", height = 8, width = 12)
 p0 <- ggplot(data = asasec,
              mapping = aes(x = Year, y = Members, label = Sname, group = Sname)) 
 p1 <- p0 + geom_line() 

@@ -365,9 +365,25 @@ mw_pca
 ```
 
 ```{r pca-2}
+## do_pca <- function(df){
+##   prcomp(df,
+##          center = TRUE, scale = TRUE)
+## }
+
+## out_pca <- mw_pca %>%
+##     ungroup() %>%
+##     select(-state) %>%
+##     do_pca()
+
+## summary(out_pca)
+
+```
+
+```{r fixed_do_pca_fun}
 do_pca <- function(df){
-  prcomp(df,
-         center = TRUE, scale = TRUE)
+  out <- prcomp(df, center = TRUE, scale = TRUE)
+  out$x <- data.frame(out$x)
+  out
 }
 
 out_pca <- mw_pca %>%
@@ -378,6 +394,7 @@ out_pca <- mw_pca %>%
 summary(out_pca)
 
 ```
+
 
 ```{r pca-3}
 tidy_pca <- tidy(out_pca, matrix = "pcs")
