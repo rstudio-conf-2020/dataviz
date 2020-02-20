@@ -323,7 +323,7 @@ statebins_continuous(state_data = subset(election, st %nin% "DC"),
 ```{r 07-maps-15, fig.cap='Manually specifying colors for statebins.', warning = FALSE, out.width = "100%", fig.show = "hold", fig.margin = TRUE, fig.width = 5, fig.height = 4, tidy = FALSE}
 
 election <- election %>% mutate(color = recode(party, Republican = "darkred",
-                                               Democrat = "royalblue"))
+                                               Democratic = "royalblue"))
 
 statebins_manual(state_data = election, state_col = "st",
                  color_col = "color", text_color = "white",
